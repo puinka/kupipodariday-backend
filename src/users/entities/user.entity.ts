@@ -1,20 +1,12 @@
 import { IsEmail, IsUrl, Length } from 'class-validator';
+import { BaseEntity } from 'src/base-entity/base.entity';
 import { Offer } from 'src/offers/entities/offer.entity';
 import { Wish } from 'src/wishes/entities/wish.entity';
 import { Wishlist } from 'src/wishlists/entities/wishlist.entity';
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, Column, OneToMany } from 'typeorm';
 
 @Entity()
-export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column()
-  createdAt: Date;
-
-  @Column()
-  updatedAt: Date;
-
+export class User extends BaseEntity {
   @Column({ type: 'varchar', unique: true })
   @Length(2, 30)
   username: string;

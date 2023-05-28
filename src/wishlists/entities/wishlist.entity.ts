@@ -1,26 +1,11 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToMany,
-  JoinTable,
-  ManyToOne,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
 import { Wish } from '../../wishes/entities/wish.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Length } from 'class-validator';
+import { BaseEntity } from 'src/base-entity/base.entity';
 
 @Entity()
-export class Wishlist {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column()
-  createdAt: Date;
-
-  @Column()
-  updatedAt: Date;
-
+export class Wishlist extends BaseEntity {
   @Column()
   @Length(1, 250)
   name: string;
@@ -35,7 +20,6 @@ export class Wishlist {
   @ManyToOne(() => User, (user) => user.wishlists)
   owner: User;
 
-  @ManyToMany(() => Wish)
-  @JoinTable()
-  items: Wish[];
+  @OneToMany(() => Wish, (wish) => wish.wishlist)
+  wishes: Wish[];
 }

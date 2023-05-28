@@ -1,25 +1,19 @@
-import { IsDecimal, IsEmail, IsUrl, Length } from 'class-validator';
+import {
+  IsDecimal,
+  IsEmail,
+  IsNumber,
+  IsPositive,
+  IsUrl,
+  Length,
+} from 'class-validator';
+import { BaseEntity } from 'src/base-entity/base.entity';
 import { Offer } from 'src/offers/entities/offer.entity';
 import { User } from 'src/users/entities/user.entity';
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  OneToMany,
-} from 'typeorm';
+import { Wishlist } from 'src/wishlists/entities/wishlist.entity';
+import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity()
-export class Wish {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column()
-  createdAt: Date;
-
-  @Column()
-  updatedAt: Date;
-
+export class Wish extends BaseEntity {
   @Column()
   @Length(2, 250)
   name: string;
@@ -32,23 +26,36 @@ export class Wish {
   @IsUrl()
   image: string;
 
-  @Column({ type: 'numeric', precision: 10, scale: 2 })
-  price: number;
-
-  @Column({ type: 'numeric', precision: 10, scale: 2 })
-  raised: number;
-
-  @ManyToOne(() => User, (user) => user.wishes)
-  owner: User;
-
   @Column()
   @Length(1, 1024)
   description: string;
 
-  @OneToMany(() => Offer, (offer) => offer.item)
-  offers: Offer[];
+  @Column()
+  @IsNumber({
+    maxDecimalPlaces: 2,
+  })
+  @IsPositive()
+  price: number;
+
+  @Column({
+    default: 0,
+  })
+  @IsNumber({
+    maxDecimalPlaces: 2,
+  })
+  @IsPositive()
+  raised: number;
 
   @Column({ default: 0 })
   @IsDecimal()
   copied: number;
+
+  @ManyToOne(() => User, (user) => user.wishes)
+  owner: User;
+
+  @OneToMany(() => Offer, (offer) => offer.item)
+  offers: Offer[];
+
+  @ManyToOne(() => Wishlist, (wishList) => wishList.wishes)
+  wishlist: Wishlist;
 }
