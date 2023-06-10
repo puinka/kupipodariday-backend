@@ -1,10 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
+import * as bcrypt from 'bcryptjs';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wish } from 'src/wishes/entities/wish.entity';
+import { hashPassword } from 'src/utils/hash';
 
 @Injectable()
 export class UsersService {
@@ -15,10 +17,27 @@ export class UsersService {
     private readonly wishRepository: Repository<Wish>,
   ) {}
 
-  // async create(createUserDto: CreateUserDto): Promise<User> {
-  //   const newUser = this.userRepository.create(createUserDto);
-  //   return await this.userRepository.save(newUser);
-  // }
+  async createUser(createUserDto: CreateUserDto): Promise<User> {
+    const { email, username } = createUserDto;
+    const user = await this.userRepository.find({
+      where: [{ email: email }, { username: username }],
+    });
+    if (user) throw new NotFoundException(`User already exists`);
+
+    const { password } = createUserDto;
+    const passwordHash = await hashPassword(password);
+    const newUser = this.userRepository.create({
+      ...createUserDto,
+      password: passwordHash,
+    });
+    return await this.userRepository.save(newUser);
+  }
+
+  async findUserById(id: number): Promise<User> {
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) throw new NotFoundException(`User not found`);
+    return user;
+  }
 
   // findAll(): Promise<User[]> {
   //   return this.userRepository.find();
