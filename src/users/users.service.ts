@@ -61,9 +61,9 @@ export class UsersService {
     return user;
   }
 
-  // updateById(id: number, updateUserDto: UpdateUserDto) {
-  //   return this.userRepository.update({ id }, updateUserDto);
-  // }
+  updateById(id: number, updateUserDto: UpdateUserDto) {
+    return this.userRepository.update({ id }, updateUserDto);
+  }
 
   // removeById(id: number) {
   //   return this.userRepository.delete({ id });
