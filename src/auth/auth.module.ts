@@ -12,6 +12,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
   imports: [
     UsersModule,
     PassportModule,
+<<<<<<< HEAD
     ConfigModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -20,6 +21,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         signOptions: { expiresIn: '1d' },
       }),
       inject: [ConfigService],
+=======
+    JwtModule.register({
+      secret: 'supersecret',
+      signOptions: { expiresIn: '7d' },
+>>>>>>> dev
     }),
   ],
   exports: [AuthService],
