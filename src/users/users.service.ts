@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcryptjs';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -18,11 +22,13 @@ export class UsersService {
   ) {}
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
-    const { email, username } = createUserDto;
-    const user = await this.userRepository.find({
-      where: [{ email: email }, { username: username }],
+    const isExist = await this.userRepository.find({
+      where: [
+        { email: createUserDto.email },
+        { username: createUserDto.username },
+      ],
     });
-    if (user) throw new NotFoundException(`User already exists`);
+    if (isExist) throw new UnauthorizedException(`User already exists`);
 
     const { password } = createUserDto;
     const passwordHash = await hashPassword(password);
