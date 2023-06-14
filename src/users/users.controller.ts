@@ -48,7 +48,7 @@ export class UsersController {
   // GET/users/{username}
   @Get(':username')
   async findUserByUsername(@Param('username') username: string): Promise<User> {
-    const user = await this.usersService.findUserByUsername(username);
+    const user = await this.usersService.findByEmailOrUsername(username);
     if (!user) throw new NotFoundException(`User not found`);
     return user;
   }
@@ -58,7 +58,7 @@ export class UsersController {
   async findWishesByUsername(
     @Param('username') username: string,
   ): Promise<Wish[]> {
-    const { id } = await this.usersService.findUserByUsername(username);
+    const { id } = await this.usersService.findByEmailOrUsername(username);
     if (!id) throw new NotFoundException(`User not found`);
 
     const wishes = await this.usersService.findUserWishes(id);
@@ -69,9 +69,9 @@ export class UsersController {
 
   // POST/users/find
   @Post('find')
-  async findByEmail(@Body() query: string): Promise<User> {
-    const user = await this.usersService.findByEmail(query);
-    if (!user) throw new NotFoundException(`User not found`);
+  async findUser(@Body() query: string): Promise<User> {
+    const user = await this.usersService.findByEmailOrUsername(query);
+    if (!user) throw new NotFoundException(`User not found `);
     return user;
   }
 }

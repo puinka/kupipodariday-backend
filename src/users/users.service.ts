@@ -1,12 +1,10 @@
 import {
   ConflictException,
   Injectable,
-  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import * as bcrypt from 'bcryptjs';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -47,26 +45,11 @@ export class UsersService {
     return user;
   }
 
-  // findAll(): Promise<User[]> {
-  //   return this.userRepository.find();
-  // }
-
-  async findUserByUsername(username: string): Promise<User> {
-    return await this.userRepository.findOneBy({ username });
-  }
-
-  async findUserWishes(id: number): Promise<Wish[]> {
-    const wishes = await this.wishRepository.find({
-      where: { owner: { id } },
+  async findByEmailOrUsername(query: string): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: [{ email: query }, { username: query }],
     });
-    return wishes;
-  }
-
-  async findByEmail(query: string): Promise<User> {
-    const user = await this.userRepository.find({
-      where: [{ email: query }],
-    });
-    return user[0];
+    return user;
   }
 
   async updateById(id: number, updateUserDto: UpdateUserDto) {
@@ -74,14 +57,14 @@ export class UsersService {
     const user = await this.findUserById(id);
 
     if (email) {
-      const emailOwner = await this.findByEmail(email);
+      const emailOwner = await this.findByEmailOrUsername(email);
       if (emailOwner && emailOwner.id !== id) {
         throw new ConflictException(`This email is already in use`);
       }
     }
 
     if (username) {
-      const usernameOwner = await this.findUserByUsername(username);
+      const usernameOwner = await this.findByEmailOrUsername(username);
       if (usernameOwner && usernameOwner.id !== id) {
         throw new ConflictException(`This username is already in use`);
       }
@@ -96,6 +79,13 @@ export class UsersService {
 
     await this.userRepository.update({ id }, updatedData);
     return this.findUserById(id);
+  }
+
+  async findUserWishes(id: number): Promise<Wish[]> {
+    const wishes = await this.wishRepository.find({
+      where: { owner: { id } },
+    });
+    return wishes;
   }
 
   // removeById(id: number) {
