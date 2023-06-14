@@ -1,5 +1,7 @@
 import {
+  ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -60,15 +62,40 @@ export class UsersService {
     return wishes;
   }
 
-  async findByEmail(query: string): Promise<User[]> {
+  async findByEmail(query: string): Promise<User> {
     const user = await this.userRepository.find({
       where: [{ email: query }],
     });
-    return user;
+    return user[0];
   }
 
-  updateById(id: number, updateUserDto: UpdateUserDto) {
-    return this.userRepository.update({ id }, updateUserDto);
+  async updateById(id: number, updateUserDto: UpdateUserDto) {
+    const { email, username, password } = updateUserDto;
+    const user = await this.findUserById(id);
+
+    if (email) {
+      const emailOwner = await this.findByEmail(email);
+      if (emailOwner && emailOwner.id !== id) {
+        throw new ConflictException(`This email is already in use`);
+      }
+    }
+
+    if (username) {
+      const usernameOwner = await this.findUserByUsername(username);
+      if (usernameOwner && usernameOwner.id !== id) {
+        throw new ConflictException(`This username is already in use`);
+      }
+    }
+
+    if (password) {
+      const passwordHash = await hashPassword(password);
+      updateUserDto.password = passwordHash;
+    }
+
+    const updatedData = { ...user, ...updateUserDto };
+
+    await this.userRepository.update({ id }, updatedData);
+    return this.findUserById(id);
   }
 
   // removeById(id: number) {

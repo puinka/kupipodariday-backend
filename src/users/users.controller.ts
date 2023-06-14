@@ -33,6 +33,7 @@ export class UsersController {
   async updateMe(@Req() req, @Body() updateUserDto: UpdateUserDto) {
     const user = await this.usersService.findUserById(req.user.id);
     if (!user) throw new NotFoundException(`User not found`);
+
     return this.usersService.updateById(req.user.id, updateUserDto);
   }
 
@@ -68,7 +69,7 @@ export class UsersController {
 
   // POST/users/find
   @Post('find')
-  async findByEmail(@Body() query: string): Promise<User[]> {
+  async findByEmail(@Body() query: string): Promise<User> {
     const user = await this.usersService.findByEmail(query);
     if (!user) throw new NotFoundException(`User not found`);
     return user;
