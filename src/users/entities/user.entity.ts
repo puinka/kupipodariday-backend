@@ -27,7 +27,7 @@ export class User extends BaseEntity {
   email: string;
 
   @Column()
-  password: string;
+  password?: string;
 
   @OneToMany(() => Wish, (wish) => wish.owner)
   wishes: Wish[];

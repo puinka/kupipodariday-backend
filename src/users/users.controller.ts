@@ -22,23 +22,19 @@ export class UsersController {
 
   // GET/users/me
   @Get('me')
-  async findMe(@Req() req): Promise<User> {
+  async findMe(@Req() req) {
     const user = await this.usersService.findOne({
       where: { id: req.user.id },
     });
     if (!user) throw new NotFoundException(`User not found`);
-    return user;
+    const { password, ...result } = user;
+    return result;
   }
 
   // PATCH/users/me
   @Patch('me')
   async updateMe(@Req() req, @Body() updateUserDto: UpdateUserDto) {
-    const user = await this.usersService.findOne({
-      where: { id: req.user.id },
-    });
-    if (!user) throw new NotFoundException(`User not found`);
-
-    return this.usersService.updateById(req.user.id, updateUserDto);
+    return await this.usersService.updateById(req.user.id, updateUserDto);
   }
 
   // GET/users/me/wishes
@@ -53,8 +49,9 @@ export class UsersController {
   @Get(':username')
   async findUserByUsername(@Param('username') username: string): Promise<User> {
     const user = await this.usersService.findOne({ where: { username } });
-    if (!user) throw new NotFoundException(`User not found`);
-    return user;
+    if (!user) throw new NotFoundException(`User ${username} not found`);
+    const { password, ...result } = user;
+    return result;
   }
 
   // GET/users/{username}/wishes

@@ -1,7 +1,6 @@
 import {
   ConflictException,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -39,8 +38,8 @@ export class UsersService {
     return await this.userRepository.save(newUser);
   }
 
-  findOne(query: FindOneOptions<User>) {
-    return this.userRepository.findOne(query);
+  async findOne(query: FindOneOptions<User>): Promise<User> {
+    return await this.userRepository.findOne(query);
   }
 
   async findByEmailOrUsername(query: string): Promise<User[]> {
@@ -85,8 +84,4 @@ export class UsersService {
     });
     return wishes;
   }
-
-  // removeById(id: number) {
-  //   return this.userRepository.delete({ id });
-  // }
 }
