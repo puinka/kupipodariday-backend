@@ -8,7 +8,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOneOptions, Repository } from 'typeorm';
 import { Wish } from 'src/wishes/entities/wish.entity';
 import { hashPassword } from 'src/utils/hash';
 
@@ -39,32 +39,30 @@ export class UsersService {
     return await this.userRepository.save(newUser);
   }
 
-  async findUserById(id: number): Promise<User> {
-    const user = await this.userRepository.findOneBy({ id });
-    if (!user) throw new NotFoundException(`User not found`);
-    return user;
+  findOne(query: FindOneOptions<User>) {
+    return this.userRepository.findOne(query);
   }
 
-  async findByEmailOrUsername(query: string): Promise<User> {
-    const user = await this.userRepository.findOne({
+  async findByEmailOrUsername(query: string): Promise<User[]> {
+    const users = await this.userRepository.find({
       where: [{ email: query }, { username: query }],
     });
-    return user;
+    return users;
   }
 
   async updateById(id: number, updateUserDto: UpdateUserDto) {
     const { email, username, password } = updateUserDto;
-    const user = await this.findUserById(id);
+    const user = await this.findOne({ where: { id } });
 
     if (email) {
-      const emailOwner = await this.findByEmailOrUsername(email);
+      const emailOwner = await this.findOne({ where: { email } });
       if (emailOwner && emailOwner.id !== id) {
         throw new ConflictException(`This email is already in use`);
       }
     }
 
     if (username) {
-      const usernameOwner = await this.findByEmailOrUsername(username);
+      const usernameOwner = await this.findOne({ where: { username } });
       if (usernameOwner && usernameOwner.id !== id) {
         throw new ConflictException(`This username is already in use`);
       }
@@ -78,7 +76,7 @@ export class UsersService {
     const updatedData = { ...user, ...updateUserDto };
 
     await this.userRepository.update({ id }, updatedData);
-    return this.findUserById(id);
+    return this.findOne({ where: { id } });
   }
 
   async findUserWishes(id: number): Promise<Wish[]> {

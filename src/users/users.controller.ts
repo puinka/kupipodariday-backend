@@ -23,7 +23,9 @@ export class UsersController {
   // GET/users/me
   @Get('me')
   async findMe(@Req() req): Promise<User> {
-    const user = await this.usersService.findUserById(req.user.id);
+    const user = await this.usersService.findOne({
+      where: { id: req.user.id },
+    });
     if (!user) throw new NotFoundException(`User not found`);
     return user;
   }
@@ -31,7 +33,9 @@ export class UsersController {
   // PATCH/users/me
   @Patch('me')
   async updateMe(@Req() req, @Body() updateUserDto: UpdateUserDto) {
-    const user = await this.usersService.findUserById(req.user.id);
+    const user = await this.usersService.findOne({
+      where: { id: req.user.id },
+    });
     if (!user) throw new NotFoundException(`User not found`);
 
     return this.usersService.updateById(req.user.id, updateUserDto);
@@ -48,7 +52,7 @@ export class UsersController {
   // GET/users/{username}
   @Get(':username')
   async findUserByUsername(@Param('username') username: string): Promise<User> {
-    const user = await this.usersService.findByEmailOrUsername(username);
+    const user = await this.usersService.findOne({ where: { username } });
     if (!user) throw new NotFoundException(`User not found`);
     return user;
   }
@@ -58,7 +62,7 @@ export class UsersController {
   async findWishesByUsername(
     @Param('username') username: string,
   ): Promise<Wish[]> {
-    const { id } = await this.usersService.findByEmailOrUsername(username);
+    const { id } = await this.usersService.findOne({ where: { username } });
     if (!id) throw new NotFoundException(`User not found`);
 
     const wishes = await this.usersService.findUserWishes(id);
@@ -69,9 +73,7 @@ export class UsersController {
 
   // POST/users/find
   @Post('find')
-  async findUser(@Body() query: string): Promise<User> {
-    const user = await this.usersService.findByEmailOrUsername(query);
-    if (!user) throw new NotFoundException(`User not found `);
-    return user;
+  async findUser(@Body() query: string): Promise<User[]> {
+    return await this.usersService.findByEmailOrUsername(query);
   }
 }
