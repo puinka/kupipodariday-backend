@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindOneOptions, Repository } from 'typeorm';
 import { Wish } from 'src/wishes/entities/wish.entity';
 import { hashPassword } from 'src/utils/hash';
+import { log } from 'console';
 
 @Injectable()
 export class UsersService {
@@ -21,12 +22,11 @@ export class UsersService {
   ) {}
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
-    const isExist = await this.userRepository.find({
-      where: [
-        { email: createUserDto.email },
-        { username: createUserDto.username },
-      ],
+    const { email, username } = createUserDto;
+    const isExist = await this.userRepository.findOne({
+      where: [{ email }, { username }],
     });
+
     if (isExist) throw new UnauthorizedException(`User already exists`);
 
     const { password } = createUserDto;
