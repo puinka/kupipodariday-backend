@@ -50,12 +50,16 @@ export class WishesController {
   // PATCH/wishes/{id}
   @UseGuards(JwtGuard)
   @Patch(':id')
-  update(
+  async updateWish(
+    @Req() req,
     @Param('id') id: string,
     @Body() updateWishDto: UpdateWishDto,
-    @Req() req,
   ) {
-    return this.wishesService.updateWish(+id, updateWishDto, req.user.id);
+    return await this.wishesService.updateWish(
+      +id,
+      updateWishDto,
+      +req.user.id,
+    );
   }
 
   // DELETE/wishes/{id}

@@ -7,7 +7,7 @@ import { Entity, Column, ManyToOne } from 'typeorm';
 @Entity()
 export class Offer extends BaseEntity {
   @ManyToOne(() => User, (user) => user.offers)
-  owner: User;
+  user: User;
 
   @ManyToOne(() => Wish, (wish) => wish.offers)
   item: Wish;

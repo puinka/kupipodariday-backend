@@ -20,8 +20,11 @@ export class WishesService {
     return await this.wishRepository.findOne(query);
   }
 
-  findById(id: number) {
-    return this.findOne({ where: { id }, relations: { owner: true } });
+  async findById(id: number) {
+    return await this.findOne({
+      where: { id },
+      relations: ['owner', 'offers', 'offers.user'],
+    });
   }
 
   async findLastWishes(): Promise<Wish[]> {
@@ -38,10 +41,10 @@ export class WishesService {
     });
   }
 
-  createWish(createWishDto: CreateWishDto, ownerId: number) {
+  createWish(createWishDto: CreateWishDto, owner) {
     const newWish = this.wishRepository.create({
       ...createWishDto,
-      owner: { id: ownerId },
+      owner,
     });
     return this.wishRepository.save(newWish);
   }
@@ -52,6 +55,7 @@ export class WishesService {
       relations: { owner: true },
     });
     if (!wish) throw new NotFoundException(`Wish with #${id} not found`);
+
     if (wish.owner.id !== ownerId) {
       throw new ForbiddenException(`You can't edit this wish`);
     }

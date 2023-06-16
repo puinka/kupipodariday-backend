@@ -1,6 +1,7 @@
 import {
   IsNumber,
   IsOptional,
+  IsPositive,
   IsString,
   IsUrl,
   Length,
@@ -20,17 +21,22 @@ export class CreateWishDto {
   @IsUrl()
   image: string;
 
-  @IsNumber()
+  @IsNumber({
+    maxDecimalPlaces: 2,
+  })
   @Min(1)
+  @IsPositive()
   price: number;
 
-  @IsNumber()
+  @IsNumber({
+    maxDecimalPlaces: 2,
+  })
   @IsOptional()
-  raised?: 0;
+  raised: number;
 
   @IsNumber()
   @IsOptional()
-  copied?: 0;
+  copied: number;
 
   @IsString()
   @Length(2, 200)
