@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
 import { Wish } from './entities/wish.entity';
@@ -11,6 +15,14 @@ export class WishesService {
     @InjectRepository(Wish)
     private readonly wishRepository: Repository<Wish>,
   ) {}
+
+  async findOne(query): Promise<Wish> {
+    return await this.wishRepository.findOne(query);
+  }
+
+  findById(id: number) {
+    return this.findOne({ where: { id }, relations: { owner: true } });
+  }
 
   async findLastWishes(): Promise<Wish[]> {
     return await this.wishRepository.find({
@@ -25,19 +37,54 @@ export class WishesService {
       order: { copied: 'DESC' },
     });
   }
-  // create(createWishDto: CreateWishDto) {
-  //   return 'This action adds a new wish';
-  // }
-  // findAll() {
-  //   return `This action returns all wishes`;
-  // }
-  // findOne(id: number) {
-  //   return `This action returns a #${id} wish`;
-  // }
-  // update(id: number, updateWishDto: UpdateWishDto) {
-  //   return `This action updates a #${id} wish`;
-  // }
-  // remove(id: number) {
-  //   return `This action removes a #${id} wish`;
-  // }
+
+  createWish(createWishDto: CreateWishDto, ownerId: number) {
+    const newWish = this.wishRepository.create({
+      ...createWishDto,
+      owner: { id: ownerId },
+    });
+    return this.wishRepository.save(newWish);
+  }
+
+  async updateWish(id: number, updateWishDto: UpdateWishDto, ownerId: number) {
+    const wish = await this.findOne({
+      where: { id },
+      relations: { owner: true },
+    });
+    if (!wish) throw new NotFoundException(`Wish with #${id} not found`);
+    if (wish.owner.id !== ownerId) {
+      throw new ForbiddenException(`You can't edit this wish`);
+    }
+
+    if (updateWishDto.price && wish.raised > 0) {
+      throw new ForbiddenException(
+        `You can't edit price of this wish as it already has offers`,
+      );
+    }
+    return this.wishRepository.update(id, updateWishDto);
+  }
+
+  async removeWish(id: number, ownerId: number) {
+    const wish = await this.findOne({
+      where: { id },
+      relations: { owner: true },
+    });
+    if (!wish) throw new NotFoundException(`Wish with #${id} not found`);
+    if (wish.owner.id !== ownerId) {
+      throw new ForbiddenException(`You can't delete this wish`);
+    }
+    return this.wishRepository.delete(id);
+  }
+
+  async copyWish(id: number, ownerId: number) {
+    const wish = await this.findOne({
+      where: { id },
+      relations: { owner: false },
+    });
+    if (!wish)
+      throw new NotFoundException(
+        `Wish with #${id} not found or it's already yours`,
+      );
+    await this.createWish({ ...wish, raised: 0, copied: 0 }, ownerId);
+  }
 }
