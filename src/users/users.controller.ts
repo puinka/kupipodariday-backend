@@ -70,7 +70,7 @@ export class UsersController {
 
   // POST/users/find
   @Post('find')
-  async findUser(@Body() query: string): Promise<User[]> {
-    return await this.usersService.findByEmailOrUsername(query);
+  async findUser(@Body() search): Promise<User[]> {
+    return await this.usersService.findByEmailOrUsername(search.query);
   }
 }
