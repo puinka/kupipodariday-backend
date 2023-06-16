@@ -21,5 +21,5 @@ export class Wishlist extends BaseEntity {
   owner: User;
 
   @OneToMany(() => Wish, (wish) => wish.wishlist)
-  wishes: Wish[];
+  items: Wish[];
 }
